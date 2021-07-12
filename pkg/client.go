@@ -1,17 +1,50 @@
 package pkg
 
 import (
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"io/ioutil"
+	"net/http"
 )
 
-func RunClient(rootCaPemPath string, clientPemCertPath string, clientPemKeyPath string) {
-	ListInstalledCerts()
+func RunVanillaClient(rootCaPemPath string) {
+	caCert, err := ioutil.ReadFile(rootCaPemPath)
+	DoOrDie(err)
 
+	//caCertPool := x509.NewCertPool()
+
+	caCertPool, err := x509.SystemCertPool()
+	DoOrDie(err)
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: caCertPool,
+			},
+		},
+	}
+
+	resp, err := client.Get("https://localhost/test")
+	DoOrDie(err)
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		DoOrDie(err)
+		logrus.Infof("body: %s", string(bodyBytes))
+	} else {
+		DoOrDie(errors.Errorf("not ok: status code %d", resp.StatusCode))
+	}
+}
+
+func RunRestyClient(rootCaPemPath string) {
 	client := resty.New()
 
 	if rootCaPemPath != "" {
@@ -21,10 +54,6 @@ func RunClient(rootCaPemPath string, clientPemCertPath string, clientPemKeyPath 
 	} else {
 		logrus.Warnf("skipping setting root certificate")
 	}
-
-	//cert, err := tls.LoadX509KeyPair(clientPemCertPath, clientPemKeyPath)
-	//DoOrDie(err)
-	//client.SetCertificates(cert)
 
 	client.HostURL = "https://localhost"
 	resp, err := IssueRequest(client, "GET", "test", nil, nil)
