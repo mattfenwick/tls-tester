@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-func RunVanillaClient(rootCaPemPath string) {
+func RunVanillaClient(rootCaPemPath string, url string) {
 	caCert, err := ioutil.ReadFile(rootCaPemPath)
 	DoOrDie(err)
 
@@ -30,7 +30,7 @@ func RunVanillaClient(rootCaPemPath string) {
 		},
 	}
 
-	resp, err := client.Get("https://localhost/test")
+	resp, err := client.Get(url)
 	DoOrDie(err)
 
 	defer resp.Body.Close()
@@ -44,21 +44,26 @@ func RunVanillaClient(rootCaPemPath string) {
 	}
 }
 
-func RunRestyClient(rootCaPemPath string) {
+func RunRestyClient(rootCaPemPath string, url string) {
 	client := resty.New()
 
 	if rootCaPemPath != "" {
 		client.SetRootCertificate(rootCaPemPath)
 		logrus.Infof("set root cert to %s", rootCaPemPath)
-		ListInstalledCerts()
+		//ListInstalledCerts()
 	} else {
 		logrus.Warnf("skipping setting root certificate")
 	}
 
-	client.HostURL = "https://localhost"
-	resp, err := IssueRequest(client, "GET", "test", nil, nil)
+	resp, err := client.R().Get(url)
 	DoOrDie(err)
-	fmt.Printf("response: %s\n", resp)
+
+	respBody, statusCode := resp.String(), resp.StatusCode()
+	logrus.Debugf("response code %d; body %s", statusCode, respBody)
+
+	if !resp.IsSuccess() {
+		DoOrDie(errors.Errorf("unsuccessful status code: %d", statusCode))
+	}
 }
 
 func IssueRequest(restyClient *resty.Client, verb string, path string, body interface{}, result interface{}) (string, error) {

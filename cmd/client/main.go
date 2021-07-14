@@ -3,17 +3,19 @@ package main
 import (
 	"github.com/mattfenwick/tls-tester/pkg"
 	"github.com/sirupsen/logrus"
+	"os"
 )
 
 func main() {
-	certPath := "certs/tls.crt"
-	//keyPath := "certs/tls.key"
+	logrus.Infof("args: %+v", os.Args)
 
-	pkg.ListInstalledCerts()
+	certPath, url := os.Args[1], os.Args[2]
+
+	//pkg.ListInstalledCerts()
 
 	logrus.Infof("running resty client")
-	pkg.RunRestyClient(certPath)
+	pkg.RunRestyClient(certPath, url)
 
 	logrus.Infof("running vanilla client")
-	pkg.RunVanillaClient(certPath)
+	pkg.RunVanillaClient(certPath, url)
 }
