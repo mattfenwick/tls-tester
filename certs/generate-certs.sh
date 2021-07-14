@@ -3,7 +3,7 @@
 set -xv
 set -euo pipefail
 
-readonly DAYS=3650
+DAYS=3650
 
 key () {
   openssl genrsa 2048
@@ -17,13 +17,13 @@ keyid () {
     tr -d ' \n'
 }
 
-readonly CA_CONF='
+CA_CONF='
   basicConstraints=critical,CA:TRUE,pathlen:0
   keyUsage=critical,keyCertSign
   subjectKeyIdentifier=hash
 '
-readonly CA_KEY="$( key )"
-readonly CA_KEYID="$( keyid <<< "$CA_KEY" )"
+CA_KEY="$( key )"
+CA_KEYID="$( keyid <<< "$CA_KEY" )"
 
 echo "$CA_KEY" > ca.key
 echo "$CA_KEYID" > ca_keyid.txt

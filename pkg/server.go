@@ -27,7 +27,7 @@ func RunServer(ports []int, certFile string, keyFile string, stop <-chan struct{
 		useSimple := false
 		if useSimple {
 			go func() {
-				DoOrDie(http.ListenAndServeTLS(address, certFile, keyFile, serveMux))
+				DoOrDie(errors.Wrapf(http.ListenAndServeTLS(address, certFile, keyFile, serveMux), "unable to ListenAndServeTLS"))
 			}()
 		} else {
 			//cert, err := tls.LoadX509KeyPair(certFile, keyFile)
@@ -42,7 +42,7 @@ func RunServer(ports []int, certFile string, keyFile string, stop <-chan struct{
 				//},
 			}
 			go func() {
-				DoOrDie(server.ListenAndServeTLS(certFile, keyFile))
+				DoOrDie(errors.Wrapf(server.ListenAndServeTLS(certFile, keyFile), "unable to ListenAndServeTLS"))
 			}()
 		}
 	}

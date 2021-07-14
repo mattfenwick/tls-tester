@@ -2,18 +2,26 @@
 
 Example project to test certs from client and server sides.
 
-## Run server
+## Usage
+
+Generate certs:
 
 ```bash
-go run cmd/server/main.go
+pushd certs
+  ./generate-certs.sh
+popd
 ```
 
-## Run client
+Run server:
 
 ```bash
-go run cmd/client/main.go
+go run cmd/server/main.go \
+  certs/end-entity.crt \
+  certs/end-entity.key
+```
 
-./curl-client.sh
+Run client:
 
-./wget-client.sh
+```bash
+./client-tests.sh
 ```

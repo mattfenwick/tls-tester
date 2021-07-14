@@ -5,7 +5,7 @@ set -xv
 # use this to see certificate:
 # openssl s_client -showcerts -connect localhost:443
 
-CACERT=${CACERT:-"./certs-with-ca/ca.crt"}
+CACERT=${CACERT:-"./certs/ca.crt"}
 URL=${URL:-"https://localhost:443/test"}
 
 # start server somewhere else
