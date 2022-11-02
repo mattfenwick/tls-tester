@@ -1,0 +1,145 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+  name: tls-hacking-server
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - hosts:
+      - server.hacking.local
+      secretName: server-tls-hacking-ingress
+  rules:
+    - host: server.hacking.local
+      http:
+        paths:
+          - backend:
+              service:
+                name: "tls-hacking"
+                port:
+                  number: 8081
+            path: /
+            pathType: ImplementationSpecific
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+  name: tls-hacking-reverse-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - hosts:
+      - reverse-proxy.hacking.local
+      secretName: reverse-proxy-tls-hacking-ingress
+  rules:
+    - host: reverse-proxy.hacking.local
+      http:
+        paths:
+          - backend:
+              service:
+                name: "tls-hacking"
+                port:
+                  number: 8080
+            path: /
+            pathType: ImplementationSpecific
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   annotations:
+#     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+#   name: from-tls-to-tls
+#   namespace: {{ .Release.Namespace }}
+# spec:
+#   ingressClassName: "nginx"
+#   tls:
+#     - hosts:
+#       - from-tls-to-tls.hacking.local
+#       secretName: from-tls-to-tls-ingress
+#   rules:
+#     - host: from-tls-to-tls.hacking.local
+#       http:
+#         paths:
+#           - backend:
+#               service:
+#                 name: "from-tls-to-tls"
+#                 port:
+#                   number: 8443
+#             path: /upstream/tls
+#             pathType: ImplementationSpecific
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   annotations:
+#     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+#   name: from-tls-to-nontls
+#   namespace: {{ .Release.Namespace }}
+# spec:
+#   ingressClassName: "nginx"
+#   tls:
+#     - hosts:
+#       - from-tls-to-nontls.hacking.local
+#       secretName: from-tls-to-nontls-ingress
+#   rules:
+#     - host: from-tls-to-nontls.hacking.local
+#       http:
+#         paths:
+#           - backend:
+#               service:
+#                 name: "from-tls-to-nontls"
+#                 port:
+#                   number: 8080
+#             path: /upstream/nontls
+#             pathType: ImplementationSpecific
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   annotations:
+#     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+#   name: from-nontls-to-tls
+#   namespace: {{ .Release.Namespace }}
+# spec:
+#   ingressClassName: "nginx"
+#   rules:
+#     - host: from-nontls-to-tls.hacking.local
+#       http:
+#         paths:
+#           - backend:
+#               service:
+#                 name: "from-nontls-to-tls"
+#                 port:
+#                   number: 8443
+#             path: /upstream/tls
+#             pathType: ImplementationSpecific
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   annotations:
+#     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+#   name: from-nontls-to-nontls
+#   namespace: {{ .Release.Namespace }}
+# spec:
+#   ingressClassName: "nginx"
+#   rules:
+#     - host: from-nontls-to-nontls.hacking.local
+#       http:
+#         paths:
+#           - backend:
+#               service:
+#                 name: "from-nontls-to-nontls"
+#                 port:
+#                   number: 8080
+#             path: /upstream/nontls
+#             pathType: ImplementationSpecific

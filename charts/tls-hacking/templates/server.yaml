@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tls-hacking
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "chart.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: reverse-proxy
+          image: "localhost:5000/nginx:1.23.2"
+          imagePullPolicy: Always
+          ports:
+            - name: p8080
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "0.1"
+              memory: 128Mi
+            requests:
+              cpu: "0.1"
+              memory: 128Mi
+          volumeMounts:
+            - name: nginx-config-volume
+              mountPath: /etc/nginx
+            - name: nginx-var-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-var-log
+              mountPath: /var/log/nginx
+            - name: nginx-var-run
+              mountPath: /var/run
+        - name: server
+          command: ["/main"]
+          env:
+          image: "localhost:5000/tls-server:latest"
+          imagePullPolicy: Always
+          ports:
+            - name: p8081
+              containerPort: 8081
+              protocol: TCP
+      volumes:
+        - name: nginx-config-volume
+          configMap:
+            name: http-nginx-config
+        - name: nginx-var-cache
+          emptyDir: {}
+        - name: nginx-var-log
+          emptyDir: {}
+        - name: nginx-var-run
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tls-hacking
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: p8080
+    - port: 8081
+      targetPort: 8081
+      protocol: TCP
+      name: p8081
+  selector:
+    {{- include "chart.selectorLabels" . | nindent 4 }}

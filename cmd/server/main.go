@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
+	"os"
+
 	"github.com/mattfenwick/tls-tester/pkg"
 	"github.com/sirupsen/logrus"
-	"os"
 )
 
 func main() {
@@ -11,7 +13,11 @@ func main() {
 
 	logrus.Infof("args: %+v", os.Args)
 
-	certFile, keyFile := os.Args[1], os.Args[2]
+	if len(os.Args) > 1 {
+		certFile, keyFile := os.Args[1], os.Args[2]
 
-	pkg.RunServer([]int{80, 443}, certFile, keyFile, stop)
+		pkg.RunServerWithTlsTermination([]int{80, 443}, certFile, keyFile, stop)
+	} else {
+		pkg.RunServer(context.TODO(), 8081)
+	}
 }
